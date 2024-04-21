@@ -1,0 +1,41 @@
+# 1. Definindo a fase de construção
+FROM node:20-alpine as builder
+
+# Define o diretório de trabalho
+WORKDIR /app
+
+# Instale ferramentas de compilação e outras dependências de sistema
+RUN apk --no-cache add g++ make python3
+
+# Copie os arquivos package.json e o package-lock.json (ou yarn.lock)
+COPY package*.json ./
+
+# Instale todas as dependências necessárias para o build
+RUN npm install
+
+# Copie o restante dos arquivos do projeto
+COPY . .
+
+# Compile o TypeScript
+RUN npm run build
+
+# 2. Definindo a fase de produção
+FROM node:20-alpine
+
+# Define o diretório de trabalho
+WORKDIR /app
+
+# Copie os arquivos package.json e o package-lock.json (ou yarn.lock)
+COPY package*.json ./
+
+# Instale apenas as dependências de produção
+RUN npm install --only=production
+
+# Copie os arquivos necessários da fase de construção
+COPY --from=builder /app/dist ./dist
+
+# Exponha a porta que seu aplicativo usará
+EXPOSE 6000
+
+# Defina o comando para rodar sua aplicação
+CMD ["node", "dist/index.js"]
