@@ -1,7 +1,7 @@
 import { transcribeAudio } from '../ai/transcribeAudio.js';
 import { describeImage } from '../ai/describeImage.js';
 import Evolution from './evolution.js';
-import { WebhookSchema, ResponseData, SenderData } from '../../types/evolution.js'
+import { WebhookSchema, ResponseData, SenderData, WebhookImageSchema } from '../../types/evolution.js'
 import { z } from 'zod'
 import { GetEvolutionByOwner } from '../supabase/evolution.js';
 import { GetUserById } from '../supabase/users.js';
@@ -24,6 +24,8 @@ export function processWebhook(event: z.infer<typeof WebhookSchema>): any {
                 return getAudioMessage(event);
             case "imageMessage":
                 return getImageMessage(event);
+            case "videoMessage":
+                return getVideoMessage(event);
             default:
                 return sendErrorMessage(event);
         }
@@ -38,8 +40,7 @@ function getSenderData(event: any): SenderData {
     };
 }
 
-function sendErrorMessage(event: z.infer<typeof WebhookSchema>): Promise<ResponseData> {
-
+function sendErrorMessage(event: any): Promise<ResponseData> {
     const remoteJid = event.data.key.remoteJid;
     const messageType = event.data.messageType;
     const sender = getSenderData(event)
@@ -103,7 +104,7 @@ async function getAudioMessage(event: any): Promise<ResponseData> {
     }
 }
 
-async function getImageMessage(event: any): Promise<ResponseData> {
+async function getImageMessage(event: z.infer<typeof WebhookImageSchema>): Promise<ResponseData> {
     const remoteJid = event.data.key.remoteJid;
     const imageBase64 = event.data.message.base64!;
     const messageType = event.data.messageType;
@@ -111,11 +112,15 @@ async function getImageMessage(event: any): Promise<ResponseData> {
 
     try {
         const text = (await describeImage(imageBase64)).responseText;
-        const captions = event.data.message.ImageMessage?.caption || "";
-        const combinedText = `${captions}\n\n${text}`;
+        const captions = event.data.message.imageMessage.caption || "";
+        const combinedText = `O usuário enviou uma imagem com a seguinte legenda:\n'${captions}'\n\n'E a descrição da imagem é:\n'${text}'`;
         return responseHandler(remoteJid, combinedText, messageType, sender);
     } catch (error) {
         console.error("Failed to process image message:", error);
         return sendErrorMessage(event);
     }
+}
+
+function getVideoMessage(event: any) {
+    return sendErrorMessage(event)
 }

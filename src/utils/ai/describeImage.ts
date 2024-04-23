@@ -2,7 +2,7 @@ import { OpenAI } from 'openai';
 
 export async function describeImage(base64Img: string): Promise<{ responseText: string, totalTokens: number }> {
     const client = new OpenAI();
-
+    const urlImage = `data:image/jpeg;base64,${base64Img}` as any
     try {
         const description = await client.chat.completions.create({
             model: "gpt-4-vision-preview",
@@ -13,7 +13,7 @@ export async function describeImage(base64Img: string): Promise<{ responseText: 
                         { type: "text", text: "O que tem nessa imagem?" },
                         {
                             type: "image_url",
-                            image_url: `data:image/png;base64,${base64Img}` as any,
+                            image_url: urlImage,
                         },
                     ]
                 }
