@@ -28,7 +28,7 @@ export const DebounceMessage = async (app: FastifyInstance, options, done) => {
             if (!debouncedSendTextHandler) {
                 const { memoryKey, remoteJid, ai } = finalData
 
-                debouncedSendTextHandler = debounce(() => wpp.sendTextHandler(memoryKey, remoteJid, ai), 100);
+                debouncedSendTextHandler = debounce(() => wpp.sendTextHandler(memoryKey, remoteJid, ai), 5000);
             }
 
             debouncedSendTextHandler()

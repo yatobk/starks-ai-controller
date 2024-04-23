@@ -6,7 +6,8 @@ export interface LambdaEvent {
 }
 
 export interface LambdaResponse {
-    status: string;
+    status: number;
     timestamp: string;
     text: string;
+    message?: string;
 }

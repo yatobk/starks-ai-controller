@@ -5,6 +5,7 @@ import { WebhookSchema, ResponseData, SenderData } from '../../types/evolution.j
 import { z } from 'zod'
 import { GetEvolutionByOwner } from '../supabase/evolution.js';
 import { GetUserById } from '../supabase/users.js';
+import { defaultErrorMessage } from './sendMessage.js';
 
 export function processWebhook(event: z.infer<typeof WebhookSchema>): any {
 
@@ -42,7 +43,7 @@ function sendErrorMessage(event: z.infer<typeof WebhookSchema>): Promise<Respons
     const remoteJid = event.data.key.remoteJid;
     const messageType = event.data.messageType;
     const sender = getSenderData(event)
-    const text = "Desculpe mas não entendi sua última mensagem, poderia mandar em texto por favor?";
+    const text = defaultErrorMessage;
     return responseHandler(remoteJid, text, messageType, sender);
 }
 
@@ -50,7 +51,7 @@ async function responseHandler(remoteJid: string, text: string, messageType: str
 
     const { owner } = sender
 
-    const ai = text !== "Desculpe mas não entendi sua última mensagem, poderia mandar em texto por favor?" ?
+    const ai = text !== defaultErrorMessage ?
         (await GetUserById({ id: (await GetEvolutionByOwner({ owner })).user })).ai : "NULL";
 
     const data: ResponseData = {

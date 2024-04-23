@@ -26,18 +26,14 @@ export async function GetEvolutionByOwner(body: { owner: string }): Promise<Evol
     const { owner } = parsedBody.data;
 
     try {
-        const { data, error } = await supabase
+        const { data } = await supabase
             .from("evolution")
             .select()
             .eq("ownerJid", owner)
             .single();
 
-        if (error) {
-            console.error(`Failed to fetch Evolution record for owner ${owner}`, error);
-            throw new Error(`Failed to fetch Evolution record: ${error.message}`);
-        }
-
         return data;
+
     } catch (error) {
         console.error(`An unexpected error occurred while fetching Evolution record for owner ${owner}`, error);
         throw new Error(`An unexpected error occurred: ${error.message}`);

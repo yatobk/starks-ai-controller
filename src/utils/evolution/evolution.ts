@@ -37,6 +37,7 @@ class Evolution {
             const response = await axios.post(`${this.baseUrl}/message/sendText/${this.instance}`, payload, { headers });
 
             return response.data;
+
         } catch (error) {
             console.error("Failed to send text message:", error);
             throw new Error(`Failed to send text message to ${remoteJid}: ${error.message}`);
@@ -47,7 +48,6 @@ class Evolution {
         try {
             if (userMessages.hasOwnProperty(memoryKey)) {
                 const messages = userMessages[memoryKey].join('\n\n');
-                console.log(`messages: ${messages}`)
                 const message = await invokeAI({ userInput: messages, memoryKey, ai });
 
                 delete userMessages[memoryKey];
@@ -69,7 +69,6 @@ class Evolution {
             throw new Error(`Error processing messages for ${memoryKey}: ${error.message}`);
         }
     }
-
 
     async convertAudioToBase64(audioId: string): Promise<string> {
         try {

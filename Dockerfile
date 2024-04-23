@@ -1,6 +1,6 @@
-FROM node:20-alpine
+FROM node:20
 
-WORKDIR /app
+WORKDIR /
 
 COPY package.json .
 
@@ -10,8 +10,8 @@ RUN npm run build
 
 COPY . .
 
-EXPOSE 6000
+EXPOSE 7000
 
-ENV ADDRESS=0.0.0.0 PORT=6000
+ENV ADDRESS=0.0.0.0 PORT=7000
 
-CMD ["node", "dist/index.js"]
+CMD ["npm", "start"]
