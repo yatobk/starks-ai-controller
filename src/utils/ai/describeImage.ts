@@ -1,7 +1,11 @@
 import { OpenAI } from 'openai';
+import { GetAiById } from '../supabase/ai.js';
 
-export async function describeImage(base64Img: string): Promise<{ responseText: string, totalTokens: number }> {
-    const client = new OpenAI();
+export async function describeImage(base64Img: string, aiId: string): Promise<{ responseText: string, totalTokens: number }> {
+
+    const { openai_api_key } = await GetAiById({ id: aiId })
+    const client = new OpenAI({ apiKey: openai_api_key });
+
     const urlImage = `data:image/jpeg;base64,${base64Img}` as any
     try {
         const description = await client.chat.completions.create({

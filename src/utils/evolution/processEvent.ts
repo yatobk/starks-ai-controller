@@ -53,7 +53,7 @@ async function responseHandler(remoteJid: string, text: string, messageType: str
     const { owner } = sender
 
     const ai = text !== defaultErrorMessage ?
-        (await GetUserById({ id: (await GetEvolutionByOwner({ owner })).user })).ai : "NULL";
+        (await GetUserById({ id: (await GetEvolutionByOwner({ owner })).user })).ai : "9e927d3c-a81b-4177-8915-ce3c654dcd1f";
 
     const data: ResponseData = {
         messageType,
@@ -61,7 +61,7 @@ async function responseHandler(remoteJid: string, text: string, messageType: str
         remoteJid,
         sender,
         memoryKey: `${sender.owner}@${remoteJid}`,
-        ai
+        ai: ai
     };
 
     return data;
@@ -96,7 +96,10 @@ async function getAudioMessage(event: any): Promise<ResponseData> {
 
     try {
         const audioBase64 = await evolution.convertAudioToBase64(audioId);
-        const text = (await transcribeAudio(audioBase64)).responseText;
+        const owner = sender.owner
+        const { ai } = await GetUserById({ id: (await GetEvolutionByOwner({ owner })).user });
+
+        const text = (await transcribeAudio(audioBase64, ai)).responseText;
         return responseHandler(remoteJid, text, messageType, sender);
     } catch (error) {
         console.error("Failed to process audio message:", error);
@@ -111,7 +114,10 @@ async function getImageMessage(event: z.infer<typeof WebhookImageSchema>): Promi
     const sender = getSenderData(event);
 
     try {
-        const text = (await describeImage(imageBase64)).responseText;
+        const owner = sender.owner
+        const { ai } = await GetUserById({ id: (await GetEvolutionByOwner({ owner })).user });
+
+        const text = (await describeImage(imageBase64, ai)).responseText;
         const captions = event.data.message.imageMessage.caption || "";
         const combinedText = `O usuário enviou uma imagem com a seguinte legenda:\n'${captions}'\n\n'E a descrição da imagem é:\n'${text}'`;
         return responseHandler(remoteJid, combinedText, messageType, sender);

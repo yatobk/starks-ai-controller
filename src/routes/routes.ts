@@ -3,6 +3,7 @@ import { EvolutionRoutes } from './api/evo/@EvolutionRoutes.js';
 import { app } from '../index.js';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { AiRoutes } from './api/ai/@AiRoutes.js';
+import { Middleware } from '../config/middleware.js';
 
 export const baseApiRoute = "/api"
 

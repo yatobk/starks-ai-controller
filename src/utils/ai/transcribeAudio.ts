@@ -3,14 +3,18 @@ import { writeFile, unlink } from 'fs/promises';
 import { join } from 'path';
 import { randomBytes } from 'crypto';
 import { createReadStream } from "fs"
+import { GetAiById } from '../supabase/ai.js';
 
 function generateRandomString(length: number): string {
     const randFileName = randomBytes(length).toString('hex').slice(0, length);
     return randFileName;
 }
 
-export async function transcribeAudio(base64Audio: string): Promise<{ responseText: string, totalTokens: number }> {
-    const client = new OpenAI();
+export async function transcribeAudio(base64Audio: string, aiId: string): Promise<{ responseText: string, totalTokens: number }> {
+
+    const { openai_api_key } = await GetAiById({ id: aiId })
+    const client = new OpenAI({ apiKey: openai_api_key });
+
     const audioData = Buffer.from(base64Audio, 'base64');
     const randomString = generateRandomString(16);
     const audioFileName = `audio_${randomString}.ogg`;

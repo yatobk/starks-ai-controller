@@ -9,7 +9,8 @@ const envSchema = z.object({
     AWS_REGION: z.string().min(1),
     EVOLUTION_BASE_URL: z.string().min(1),
     SUPABASE_PROJECT_URL: z.string().min(1),
-    SUPABASE_KEY: z.string().min(1)
+    SUPABASE_KEY: z.string().min(1),
+    SECRET_API_TOKEN: z.string().min(1)
 });
 
 export const env = envSchema.parse(process.env);

@@ -1,20 +1,11 @@
 import { supabase } from '../../config/supabase.js';
 import { z } from 'zod';
 
-interface ApiKey {
-    key: string;
-    type: string;
-}
-
-interface ApiKeys {
-    keys: ApiKey[];
-}
 
 export interface AiSchema {
     id: string;
     prompt: string;
-    task: string;
-    api_keys: ApiKeys;
+    openai_api_key: string;
 }
 
 const queryParamsSchema = z.object({

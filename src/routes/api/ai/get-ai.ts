@@ -1,9 +1,10 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { GetAiById } from "../../../utils/supabase/ai.js";
 import { baseApiRoute } from "../../routes.js";
+import { Middleware } from "../../../config/middleware.js";
 
 export const GetAi = async (app: FastifyInstance) => {
-    app.get(`${baseApiRoute}/ai`, async (request: FastifyRequest, reply: FastifyReply) => {
+    app.get(`${baseApiRoute}/ai`, { preHandler: [Middleware] }, async (request: FastifyRequest, reply: FastifyReply) => {
         const { id } = request.query as { id?: string };
 
         if (!id) {

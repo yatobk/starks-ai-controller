@@ -7,16 +7,20 @@ import { userMessages } from '../../../utils/evolution/userData.js';
 import { baseApiRoute } from '../../routes.js';
 
 export const DebounceMessage = async (app: FastifyInstance, options, done) => {
-    let debouncedSendTextHandler;
+    // Objeto para manter os manipuladores debounced por memoryKey
+    const debouncedHandlers = {};
 
     app.post(`${baseApiRoute}/evo`, async (request: FastifyRequest, reply: FastifyReply) => {
         try {
             const payload = request.body;
+
             if (!payload) {
                 return reply.status(400).send("No payload provided");
             }
+
             const finalData: ResponseData = await processWebhook(payload);
 
+            // Garantir armazenamento das mensagens de cada usuário
             if (finalData.memoryKey in userMessages) {
                 userMessages[finalData.memoryKey].push(finalData.input);
             } else {
@@ -25,13 +29,14 @@ export const DebounceMessage = async (app: FastifyInstance, options, done) => {
 
             const wpp = new Evolution(finalData.sender.instance, finalData.sender.apiKey);
 
-            if (!debouncedSendTextHandler) {
-                const { memoryKey, remoteJid, ai } = finalData
-
-                debouncedSendTextHandler = debounce(() => wpp.sendTextHandler(memoryKey, remoteJid, ai), 5000);
+            if (!(finalData.memoryKey in debouncedHandlers)) {
+                debouncedHandlers[finalData.memoryKey] = debounce(async () => {
+                    await wpp.sendTextHandler(finalData.memoryKey, finalData.remoteJid, finalData.ai);
+                    delete userMessages[finalData.memoryKey];
+                }, 5000);
             }
 
-            debouncedSendTextHandler()
+            debouncedHandlers[finalData.memoryKey]();
 
             const sendMessageResponse = {
                 status: 200,
