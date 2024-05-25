@@ -2,3 +2,4 @@ node_modules
 dist
 .env
 compose.yaml
+test.js
