@@ -95,7 +95,8 @@ async function getAudioMessage(event: any): Promise<ResponseData> {
     const evolution = new Evolution(instance, apiKey);
 
     try {
-        const audioBase64 = await evolution.convertAudioToBase64(audioId);
+        //const audioBase64 = await evolution.convertAudioToBase64(audioId);
+        const audioBase64 = event.data.message.base64
         const owner = sender.owner
         const { ai } = await GetUserById({ id: (await GetEvolutionByOwner({ owner })).user });
 

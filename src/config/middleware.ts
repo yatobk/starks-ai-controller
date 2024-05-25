@@ -3,7 +3,6 @@ import { env } from './zod-env.js';
 
 export const Middleware = (request: FastifyRequest, reply: FastifyReply, done) => {
 
-    console.log("middlware acionado")
     const authHeader = request.headers.authorization;
     if (!authHeader) {
         return reply.status(401).send({ error: 'Authorization header is missing' });
