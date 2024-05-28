@@ -20,17 +20,17 @@ export const DebounceMessage = async (app: FastifyInstance, options, done) => {
 
             const finalData: ResponseData = await processWebhook(payload);
 
-            let session = await getSession(finalData.remoteJid);
+            let session = await getSession(`${finalData.sender.instance}@${finalData.remoteJid}`);
 
             if (!session) {
-                session = await createSession(finalData.remoteJid);
+                session = await createSession(`${finalData.sender.instance}@${finalData.remoteJid}`);
                 if (!session) {
                     return reply.status(500).send({ status: 'Error creating session' });
                 }
             } else if (session.status === 'paused') {
                 return reply.send({ status: 'Session paused' });
             } else if (session.status === 'expired') {
-                session = await updateSession(finalData.remoteJid, "active");
+                session = await updateSession(`${finalData.sender.instance}@${finalData.remoteJid}`, "active");
                 if (!session) {
                     return reply.status(500).send({ status: 'Error creating session' });
                 }
