@@ -19,38 +19,45 @@ function answerMessages(messages: string[]): MessageResponse[] {
 function splitText(text: string): MessageResponse[] {
     text = text.replace(/[\*\#]/g, '');
 
-    // Padrão para capturar URLs, e-mails, horários e outros padrões complexos
-    const complexPattern = /(\bhttps?:\/\/[^\s]+|[^\s]+@[^\s]+|\b\d+\.\s|\w+\.\w+|\b\d{1,2}:\d{2} às \d{1,2}:\d{2}\b|SEG à SEX⋅ \d{2}:\d{2} às \d{2}:\d{2}|Telefone:|\bEndereço:|\d{5}-\d{3})/g;
+    const complexPattern = /(\bhttps?:\/\/[^\s]+|[^\s]+@[^\s]+\.\w+|\[[^\]]+\]\((mailto:[^\s]+|https?:\/\/[^\s]+)\))/g;
     const placeholders: string[] = text.match(complexPattern) || [];
 
-    // Substitui os padrões complexos por placeholders
     const placeholder = 'PLACEHOLDER_';
     let currentIndex = 0;
     const textWithPlaceholders = text.replace(complexPattern, () => `${placeholder}${currentIndex++}`);
 
-    // Padrão para capturar delimitadores, evitando divisões inadequadas em horários e outros
-    const doublePunctuationPattern = /([.!?;:\n])(\s*[\)\]\}\>\-\—]*\s*)/g;
+    const textWithNewLines = textWithPlaceholders.replace(/([!?])(\s|$)/g, (match, p1, p2) => p2 === ' ' ? `${p1}${p2}` : `${p1}\n`);
+
+    const splitPattern = /([.!?])(\s*[\n])|(\bhttps?:\/\/[^\s]+|[^\s]+@[^\s]+\.\w+)|(\n\n)/g;
     const splitMarker = 'SPLIT_MARKER';
 
-    // Substitui os delimitadores por marcadores de divisão
-    const textWithSplitMarkers = textWithPlaceholders.replace(doublePunctuationPattern, '$1$2' + splitMarker);
+    const textWithSplitMarkers = textWithNewLines.replace(splitPattern, '$1$2$3$4' + splitMarker);
 
-    // Divide o texto pelos marcadores de divisão
-    let parts: string[] = textWithSplitMarkers.split(splitMarker);
+    let parts = textWithSplitMarkers.split(splitMarker);
 
-    // Restaura os placeholders para seus valores originais
     if (placeholders.length > 0) {
         parts = parts.map((part: string) =>
-            placeholders.reduce((acc: string, val: string, idx: number) => acc.replace(`${placeholder}${idx}`, val), part)
+            placeholders.reduce((acc: string, val: string, idx: number) => {
+                const hyperlinkMatch = val.match(/\[[^\]]+\]\((mailto:[^\s]+|https?:\/\/[^\s]+)\)/);
+                if (hyperlinkMatch) {
+                    const url = hyperlinkMatch[1];
+                    if (url.startsWith('mailto:')) {
+                        return acc.replace(`${placeholder}${idx}`, url.replace('mailto:', ''));
+                    } else {
+                        return acc.replace(`${placeholder}${idx}`, url);
+                    }
+                } else {
+                    return acc.replace(`${placeholder}${idx}`, val);
+                }
+            }, part)
         );
     }
 
-    // Limpa partes vazias e retira espaços extras
     parts = parts.map(part => part.trim()).filter(part => part !== '');
+    parts = parts.filter(part => !/^-{2,}$/.test(part));
 
-    // Agrupa emojis com a mensagem anterior
-    const finalParts: string[] = parts.reduce((acc: string[], part: string) => {
-        if (part.match(/[\u{1F600}-\u{1F64F}]/u) && acc.length > 0) {  // Se é um emoji
+    const finalParts = parts.reduce((acc: string[], part: string) => {
+        if (part.match(/[\u{1F600}-\u{1F64F}]/u) && acc.length > 0) {
             acc[acc.length - 1] += ' ' + part;
         } else {
             acc.push(part);
@@ -60,7 +67,6 @@ function splitText(text: string): MessageResponse[] {
 
     return answerMessages(finalParts);
 }
-
 
 export async function invokeAI(event: LambdaEvent): Promise<MessageResponse[]> {
     try {
