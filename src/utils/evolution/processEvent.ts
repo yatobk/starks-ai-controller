@@ -60,7 +60,7 @@ async function responseHandler(remoteJid: string, text: string, messageType: str
         input: text,
         remoteJid,
         sender,
-        memoryKey: `${sender.owner}@${remoteJid}`,
+        memoryKey: `${sender.instance}@${remoteJid}`,
         ai: ai
     };
 
